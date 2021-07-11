@@ -34,11 +34,11 @@ namespace KaizerWaldCode.V2.Data.Conversion
         [Header("Noise Settings")]
         public int Seed = 1;
         public int Octaves = 4;
-
         public float Lacunarity = 2;
         [Range(0, 1)] public float Persistance = 0.5f;
         public float ScaleNoise = 0.001f;
-
+        public float NoiseWeight = 1.0f;
+        public float WeightMultiplier = 0.0f;
         public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
         {
             #region Check Values
@@ -94,6 +94,8 @@ namespace KaizerWaldCode.V2.Data.Conversion
             dstManager.AddComponentData(entity, new NoiseSet.Persistance { Value = Persistance });
             dstManager.AddComponentData(entity, new NoiseSet.Scale { Value = ScaleNoise });
             dstManager.AddComponentData(entity, new NoiseSet.Seed { Value = Seed });
+            dstManager.AddComponentData(entity, new NoiseSet.WeightMultiplier { Value = WeightMultiplier });
+            dstManager.AddComponentData(entity, new NoiseSet.NoiseWeight { Value = NoiseWeight });
             #endregion Noise Components
 
             #region Create Event Holder

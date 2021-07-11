@@ -106,9 +106,24 @@ namespace KaizerWaldCode.V2.System
             mesh.triangles = meshTriangles;
 
             mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            mesh.Optimize();
+
+            //WITHOUT this the camera won't render at certain angle!
+            _em.SetComponentData(GetSingletonEntity<Data.Tag.AuthoringMap>(), new RenderBounds
+            {
+                Value = new AABB
+                {
+                    Center = new float3(mesh.bounds.center.x, mesh.bounds.center.y, mesh.bounds.center.z),
+                    Extents = new float3(mesh.bounds.extents.x, mesh.bounds.extents.y, mesh.bounds.extents.z)
+                }
+            });
+
             Material mat = _em.GetSharedComponentData<RenderMesh>(GetSingletonEntity<Data.Tag.AuthoringMap>()).material;
             _em.SetSharedComponentData(GetSingletonEntity<Data.Tag.AuthoringMap>(), new RenderMesh(){material = mat , mesh = mesh});
             UtComputeShader.CSHReleaseBuffers(trianglesBuffer, pointsBuffer, triangleCount);
+
+            _em.RemoveComponent<V2.Data.Event.Event_MarchingCube>(GetSingletonEntity<Data.Tag.MapEventHolder>());
         }
 
         protected override void OnUpdate()

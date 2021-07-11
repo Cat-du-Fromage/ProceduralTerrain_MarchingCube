@@ -4,26 +4,22 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 
-namespace KaizerWaldCode
+namespace KaizerWaldCode.V2.UI
 {
     public class UI_HideShow : MonoBehaviour
     {
-        [SerializeField] private UI_InputsField inputField;
+        //[SerializeField] private UI_InputsField inputField;
         // Start is called before the first frame update
-        void Start()
-        {
-            //transform.Find("UI_MapSettings").GetComponent<Button>().onClick = HideShow(inputField.gameObject);
-        }
 
-        void HideShow(GameObject gameObject)
+        public void HideShow()
         {
             if (gameObject.activeSelf)
             {
-                inputField.Hide();
+                gameObject.SetActive(false);
             }
             else
             {
-                inputField.Show();
+                gameObject.SetActive(true);
             }
         }
 

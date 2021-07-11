@@ -31,5 +31,13 @@ namespace KaizerWaldCode.V2.Data.Settings
         {
             public int Value;
         }
+        public struct WeightMultiplier : IComponentData
+        {
+            public float Value;
+        }
+        public struct NoiseWeight : IComponentData
+        {
+            public float Value;
+        }
     }
 }

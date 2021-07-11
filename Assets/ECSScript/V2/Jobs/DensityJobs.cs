@@ -26,6 +26,8 @@ namespace KaizerWaldCode.V2.Jobs
         [ReadOnly] public float LacunarityJob;
         [ReadOnly] public float PersistanceJob;
         [ReadOnly] public float ScaleJob;
+        [ReadOnly] public float WeightMultiplierJob;
+        [ReadOnly] public float NoiseWeightJob;
 
         [DeallocateOnJobCompletion][ReadOnly] public NativeArray<float3> OctOffsetArrayJob;
         [WriteOnly]public NativeArray<float4> pointsJob;
@@ -37,25 +39,30 @@ namespace KaizerWaldCode.V2.Jobs
             float3 pointPosition = math.mad( new float3(x, y, z), new float3(SpacingJob, SpacingJob, SpacingJob), -(new float3(MapBoundXZJob / 2f, MapBoundYJob / 2f, MapBoundXZJob / 2f)) );
             //value depending on height value in the world
             //float pointValue = pointPosition.y < isoSurfaceJob ? 0 : 1;
-            float pointValue = NoiseMap(OctavesJob, LacunarityJob, PersistanceJob, ScaleJob, pointPosition, OctOffsetArrayJob);
-            pointValue = (pointPosition.y + 0) + pointValue + math.fmod(pointPosition.y, 1)*0;
+            float pointValue = NoiseMap(pointPosition);
+            pointValue = pointPosition.y + math.mul(pointValue, NoiseWeightJob) + math.fmod(pointPosition.y, 1)*0;
             pointsJob[index] = new float4(pointPosition, pointValue);
         }
 
-        float NoiseMap(int octaves, float lacunarity, float persistance, float scale, float3 position, NativeArray<float3> OctOffsets)
+        float NoiseMap(float3 position)
         {
             float noiseHeight = 0;
-            float frequency = scale / 100;
+            float frequency = ScaleJob / 100;
             float amplitude = 1;
-            for (int i = 0; i < octaves; i++)
+            float weight = 1;
+            for (int i = 0; i < OctavesJob; i++)
             {
-                float3 PosFrequency = math.mad(position, (float3)frequency, OctOffsets[i]);
-                float noise = 1 - math.abs(/*snoise(PosFrequency)*/math.mad(snoise(PosFrequency), 2,-1) );
-                //float noise = snoise(math.mad(snoise(PosFrequency), (float3)2,-1));
-
+                float3 PosFrequency = math.mad(position, (float3)frequency, OctOffsetArrayJob[i]);
+                //1+math.abs(noise) => mul by 1.X
+                //1-math.abs(noise) => mul by 0.X
+                //float noise = 1 + math.abs(/*snoise(PosFrequency)*/math.mad(snoise(PosFrequency), 2,-1) );
+                float noise = 1 + snoise(PosFrequency);
+                //noise = math.mul(noise, noise);
+                noise = math.mul(noise, weight);
+                weight = math.max(math.min(math.mul(noise, WeightMultiplierJob), 1), 0);
                 noiseHeight = math.mad(noise, amplitude, noiseHeight);
-                amplitude = math.mul(amplitude, persistance);
-                frequency = math.mul(frequency, lacunarity);
+                amplitude = math.mul(amplitude, PersistanceJob);
+                frequency = math.mul(frequency, LacunarityJob);
             }
 
             return noiseHeight;
