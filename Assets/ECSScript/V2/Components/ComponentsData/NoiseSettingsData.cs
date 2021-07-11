@@ -39,5 +39,21 @@ namespace KaizerWaldCode.V2.Data.Settings
         {
             public float Value;
         }
+        public struct NoiseMinValue : IComponentData
+        {
+            public float Value;
+        }
+
+        public struct IslandNoiseLayer : IComponentData
+        {
+            public int Octaves;
+            public float Lacunarity;
+            public float Persistance;
+            public float Scale;
+            public int Seed;
+            public float WeightMultiplier;
+            public float NoiseWeight;
+            public float NoiseMinValue;
+        }
     }
 }

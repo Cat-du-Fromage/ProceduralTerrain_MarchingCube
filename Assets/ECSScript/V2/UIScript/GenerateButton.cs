@@ -28,7 +28,7 @@ namespace KaizerWaldCode.V2.UI
         public TMP_InputField NoiseScaleIF;
         public TMP_InputField NoiseWeightIF;
         public TMP_InputField WeightMultiplierIF;
-
+        public TMP_InputField NoiseMinValueIF;
         private bool valueChanged;
         void Awake()
         {
@@ -92,6 +92,15 @@ namespace KaizerWaldCode.V2.UI
                 if (weightMultiplier != _em.GetComponentData<NoiseSet.WeightMultiplier>(_mapSettingData._mapSetting).Value)
                 {
                     _em.SetComponentData(_mapSettingData._mapSetting, new NoiseSet.WeightMultiplier { Value = weightMultiplier });
+                    NoisevalueChanged = true;
+                }
+            }
+            if (InputNotNull(NoiseMinValueIF.text))
+            {
+                float noiseMinValue = Single.Parse(NoiseMinValueIF.text);
+                if (noiseMinValue != _em.GetComponentData<NoiseSet.NoiseMinValue>(_mapSettingData._mapSetting).Value)
+                {
+                    _em.SetComponentData(_mapSettingData._mapSetting, new NoiseSet.NoiseMinValue { Value = noiseMinValue });
                     NoisevalueChanged = true;
                 }
             }

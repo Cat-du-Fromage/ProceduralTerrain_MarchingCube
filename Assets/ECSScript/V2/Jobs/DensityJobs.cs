@@ -28,6 +28,7 @@ namespace KaizerWaldCode.V2.Jobs
         [ReadOnly] public float ScaleJob;
         [ReadOnly] public float WeightMultiplierJob;
         [ReadOnly] public float NoiseWeightJob;
+        [ReadOnly] public float NoiseMinValueJob;
 
         [DeallocateOnJobCompletion][ReadOnly] public NativeArray<float3> OctOffsetArrayJob;
         [WriteOnly]public NativeArray<float4> pointsJob;
@@ -40,7 +41,7 @@ namespace KaizerWaldCode.V2.Jobs
             //value depending on height value in the world
             //float pointValue = pointPosition.y < isoSurfaceJob ? 0 : 1;
             float pointValue = NoiseMap(pointPosition);
-            pointValue = pointPosition.y + math.mul(pointValue, NoiseWeightJob) + math.fmod(pointPosition.y, 1)*0;
+            pointValue = pointPosition.y + math.mul(pointValue, NoiseWeightJob) /*+ math.fmod(pointPosition.y, 1)*0*/;
             pointsJob[index] = new float4(pointPosition, pointValue);
         }
 
@@ -56,7 +57,7 @@ namespace KaizerWaldCode.V2.Jobs
                 //1+math.abs(noise) => mul by 1.X
                 //1-math.abs(noise) => mul by 0.X
                 //float noise = 1 + math.abs(/*snoise(PosFrequency)*/math.mad(snoise(PosFrequency), 2,-1) );
-                float noise = 1 + snoise(PosFrequency);
+                float noise = 1 - snoise(PosFrequency);
                 //noise = math.mul(noise, noise);
                 noise = math.mul(noise, weight);
                 weight = math.max(math.min(math.mul(noise, WeightMultiplierJob), 1), 0);
@@ -65,6 +66,7 @@ namespace KaizerWaldCode.V2.Jobs
                 frequency = math.mul(frequency, LacunarityJob);
             }
 
+            noiseHeight = math.max(0, noiseHeight - NoiseMinValueJob);
             return noiseHeight;
         }
     }

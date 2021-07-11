@@ -26,6 +26,7 @@ namespace KaizerWaldCode.V2.UI
         public TMP_Text NoiseScale;
         public TMP_Text NoiseWeight;
         public TMP_Text NoiseMultiplier;
+        public TMP_Text NoiseMinValue;
         // Start is called before the first frame update
         void Awake()
         {
@@ -51,6 +52,7 @@ namespace KaizerWaldCode.V2.UI
             NoiseScale.text = _em.GetComponentData<V2.Data.Settings.Noise.Scale>(_mapSetting).Value.ToString();
             NoiseWeight.text = _em.GetComponentData<V2.Data.Settings.Noise.NoiseWeight>(_mapSetting).Value.ToString();
             NoiseMultiplier.text = _em.GetComponentData<V2.Data.Settings.Noise.WeightMultiplier>(_mapSetting).Value.ToString();
+            NoiseMinValue.text = _em.GetComponentData<V2.Data.Settings.Noise.NoiseMinValue>(_mapSetting).Value.ToString();
         }
 
     }

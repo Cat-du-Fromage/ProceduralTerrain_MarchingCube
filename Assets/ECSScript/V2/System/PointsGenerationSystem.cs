@@ -65,6 +65,7 @@ namespace KaizerWaldCode.V2.System
                 ScaleJob = _em.GetComponentData<Data.Settings.Noise.Scale>(mapSetting).Value,
                 WeightMultiplierJob = _em.GetComponentData<Data.Settings.Noise.WeightMultiplier>(mapSetting).Value,
                 NoiseWeightJob = _em.GetComponentData<Data.Settings.Noise.NoiseWeight>(mapSetting).Value,
+                NoiseMinValueJob = _em.GetComponentData<Data.Settings.Noise.NoiseMinValue>(mapSetting).Value,
             };
             JobHandle pointsJobHandle = pointsJob.Schedule(math.mul(numPointMapAxisXZ, numPointMapAxisY) * numPointMapAxisXZ, JobsUtility.JobWorkerCount - 1, noiseRandomJobHandle);
             pointsJobHandle.Complete();

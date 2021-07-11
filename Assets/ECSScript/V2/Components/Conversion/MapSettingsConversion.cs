@@ -1,3 +1,4 @@
+using System;
 using Unity.Entities;
 using System.Collections.Generic;
 using Unity.Mathematics;
@@ -10,6 +11,19 @@ using NoiseSet = KaizerWaldCode.V2.Data.Settings.Noise;
 
 namespace KaizerWaldCode.V2.Data.Conversion
 {
+    [Serializable]
+    public struct NoiseLayer
+    {
+        public int Seed;
+        public int Octaves;
+        public float Lacunarity;
+        public float Persistance;
+        public float ScaleNoise;
+        public float NoiseWeight;
+        public float WeightMultiplier;
+        public float NoiseMin;
+    }
+
     [DisallowMultipleComponent]
     public class MapSettingsConversion : MonoBehaviour, IConvertGameObjectToEntity
     {
@@ -39,6 +53,9 @@ namespace KaizerWaldCode.V2.Data.Conversion
         public float ScaleNoise = 0.001f;
         public float NoiseWeight = 1.0f;
         public float WeightMultiplier = 0.0f;
+        public float NoiseMin = 1f;
+
+        public NoiseLayer[] noiseLayer;
         public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
         {
             #region Check Values
@@ -51,6 +68,17 @@ namespace KaizerWaldCode.V2.Data.Conversion
             Octaves = math.max(1, Octaves);
             Lacunarity = math.max(1, Lacunarity);
             ScaleNoise = math.max(0.001f, ScaleNoise);
+
+            //NoiseLayer Checker
+            for (int i = 0; i < noiseLayer.Length; i++)
+            {
+                noiseLayer[i].Seed = math.max(1, noiseLayer[i].Seed);
+                noiseLayer[i].Octaves = math.max(1, noiseLayer[i].Octaves);
+                noiseLayer[i].Lacunarity = math.max(1, noiseLayer[i].Lacunarity);
+                noiseLayer[i].Persistance = noiseLayer[i].Persistance >= 0 || noiseLayer[i].Persistance <= 1 ? noiseLayer[i].Persistance : 0.5f;
+                noiseLayer[i].ScaleNoise = math.max(0.001f, noiseLayer[i].ScaleNoise);
+            }
+
             #endregion Check Values
 
             #region Tagging
@@ -96,7 +124,31 @@ namespace KaizerWaldCode.V2.Data.Conversion
             dstManager.AddComponentData(entity, new NoiseSet.Seed { Value = Seed });
             dstManager.AddComponentData(entity, new NoiseSet.WeightMultiplier { Value = WeightMultiplier });
             dstManager.AddComponentData(entity, new NoiseSet.NoiseWeight { Value = NoiseWeight });
+            dstManager.AddComponentData(entity, new NoiseSet.NoiseMinValue() { Value = NoiseMin });
             #endregion Noise Components
+
+            #region Noise Layers
+
+            for (int i = 0; i < noiseLayer.Length; i++)
+            {
+                if (i == 0)
+                {
+                    dstManager.AddComponentData(entity, new NoiseSet.IslandNoiseLayer()
+                    {
+                        Octaves = noiseLayer[i].Octaves,
+                        Seed = noiseLayer[i].Seed,
+                        Lacunarity = noiseLayer[i].Lacunarity,
+                        Persistance = noiseLayer[i].Persistance,
+                        Scale = noiseLayer[i].ScaleNoise,
+                        NoiseWeight = noiseLayer[i].NoiseWeight,
+                        WeightMultiplier = noiseLayer[i].WeightMultiplier,
+                        NoiseMinValue = noiseLayer[i].NoiseMin,
+                    });
+                }
+                
+            }
+
+            #endregion Noise Layers
 
             #region Create Event Holder
             Entity MapEventHolder = dstManager.CreateEntity(typeof(Tag.MapEventHolder));
