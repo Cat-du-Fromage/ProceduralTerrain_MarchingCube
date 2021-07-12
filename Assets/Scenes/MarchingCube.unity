@@ -8583,24 +8583,24 @@ MonoBehaviour:
   store:
   - {fileID: 958370027}
   Action: 0
-  IsoSurface: 0.5
+  IsoSurface: 5
   ChunkBound: 10
-  NumChunk: 4
-  ChunkNumPointPerAxis: 100
+  NumChunk: 8
+  ChunkNumPointPerAxis: 10
   Seed: 8
   Octaves: 6
   Lacunarity: 2
   Persistance: 0.5
-  ScaleNoise: 6.78
-  NoiseWeight: 1
-  WeightMultiplier: 10.62
-  NoiseMin: 1.22
+  ScaleNoise: 3.45
+  NoiseWeight: 1.45
+  WeightMultiplier: 1.54
+  NoiseMin: -5
   noiseLayer:
   - Seed: 2
     Octaves: 6
     Lacunarity: 2
     Persistance: 0.5
-    ScaleNoise: 1.34
+    ScaleNoise: 4.47
     NoiseWeight: 4.56
     WeightMultiplier: 3.56
     NoiseMin: 1.22

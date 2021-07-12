@@ -51,14 +51,13 @@ void MarchingCubes(uint3 id : SV_DispatchThreadID)
     // A value of 0 means cube is entirely inside the surface; 255 entirely outside.
     // The value is used to look up the edge table, which indicates which edges of the cube the surface passes through.
     int cubeConfiguration = 0;
-    for (int i = 0; i < 8; i++) 
+    for (int j = 0; j < 8; j++) 
     {
-        if (cubeCorners[i].w < isoLevel) 
+        if (cubeCorners[j].w < isoLevel) 
         {
-            cubeConfiguration |= (1 << i);
+            cubeConfiguration |= (1 << j);
         }
     }
-
     // Create triangles for current cube configuration
     for (int i = 0; triangulation[cubeConfiguration][i] != -1; i += 3)
     {

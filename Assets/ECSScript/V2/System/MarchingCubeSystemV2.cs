@@ -58,6 +58,7 @@ namespace KaizerWaldCode.V2.System
             int numVoxels = math.mul(numVoxXZ, numVoxY) * numVoxXZ;
             int maxTriangleCount = numVoxels * 5;
 
+
             //Array
             float4[] pointsArray = GetBuffer<Data.ChunksData.DynamicBuffer.PointsBuffer>(GetSingletonEntity<Data.Tag.ChunksHolder>()).Reinterpret<float4>().AsNativeArray().ToArray();
             //Set buffers

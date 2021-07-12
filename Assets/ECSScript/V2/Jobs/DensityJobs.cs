@@ -10,13 +10,37 @@ using Unity.Burst;
 
 namespace KaizerWaldCode.V2.Jobs
 {
+
+    /// <summary>
+    /// Process RandomJob
+    /// </summary>
+    [BurstCompile(CompileSynchronously = true)]
+    public struct NoiseRandomJob : IJobParallelFor
+    {
+        [ReadOnly] public Unity.Mathematics.Random RandomJob;
+        //[ReadOnly] public float3 OffsetJob;
+        [WriteOnly] public NativeArray<float3> OctOffsetArrayJob;
+
+        public void Execute(int index)
+        {
+
+            float _offsetX = RandomJob.NextFloat(-100000.0f, 100000.0f);
+            float _offsetY = RandomJob.NextFloat(-100000.0f, 100000.0f);
+            float _offsetZ = RandomJob.NextFloat(-100000.0f, 100000.0f);
+            OctOffsetArrayJob[index] = new float3(_offsetX, _offsetY, _offsetZ);
+
+            //OctOffsetArrayJob[index] = new float3((float)RandomJob.NextDouble() * 2 - 1, (float)RandomJob.NextDouble() * 2 - 1, (float)RandomJob.NextDouble() * 2 - 1);
+        }
+    }
+
     [BurstCompile(CompileSynchronously = true)]
     public struct PointsJob : IJobParallelFor
     {
         //Map/Voxel Settings
         [ReadOnly] public int MapBoundXZJob;
         [ReadOnly] public int MapBoundYJob;
-        
+        [ReadOnly] public float IsoSurfaceJob;
+
         [ReadOnly] public int MapNumPointPerAxisXZJob;
         [ReadOnly] public int MapNumPointPerAxisYJob;
         [ReadOnly] public float SpacingJob;
@@ -35,13 +59,20 @@ namespace KaizerWaldCode.V2.Jobs
         public void Execute(int index)
         {
             int x = (int)math.fmod(index, MapNumPointPerAxisXZJob);
-            int y = (int)math.floor(math.fmod(index, math.mul(MapNumPointPerAxisXZJob, MapNumPointPerAxisYJob)) / MapNumPointPerAxisXZJob); // need to test without floor
+            int y = /*(int)math.floor*/((int)math.fmod(index, math.mul(MapNumPointPerAxisXZJob, MapNumPointPerAxisYJob)) / MapNumPointPerAxisXZJob); // need to test without floor
             int z = (int)math.floor(index/math.mul(MapNumPointPerAxisXZJob, MapNumPointPerAxisYJob));
             float3 pointPosition = math.mad( new float3(x, y, z), new float3(SpacingJob, SpacingJob, SpacingJob), -(new float3(MapBoundXZJob / 2f, MapBoundYJob / 2f, MapBoundXZJob / 2f)) );
             //value depending on height value in the world
             //float pointValue = pointPosition.y < isoSurfaceJob ? 0 : 1;
             float pointValue = NoiseMap(pointPosition);
             pointValue = pointPosition.y + math.mul(pointValue, NoiseWeightJob) /*+ math.fmod(pointPosition.y, 1)*0*/;
+
+            //Avoid hole in the Terrain
+            if (pointPosition.y == MapBoundYJob/-2f && pointValue > IsoSurfaceJob)
+            {
+                pointValue = IsoSurfaceJob-0.001f; //0.001 is arbitrary it just need to be  < to isosurface;
+            }
+
             pointsJob[index] = new float4(pointPosition, pointValue);
         }
 
@@ -71,25 +102,4 @@ namespace KaizerWaldCode.V2.Jobs
         }
     }
 
-    /// <summary>
-    /// Process RandomJob
-    /// </summary>
-    [BurstCompile(CompileSynchronously = true)]
-    public struct NoiseRandomJob : IJobParallelFor
-    {
-        [ReadOnly] public Unity.Mathematics.Random RandomJob;
-        //[ReadOnly] public float3 OffsetJob;
-        [WriteOnly] public NativeArray<float3> OctOffsetArrayJob;
-
-        public void Execute(int index)
-        {
-
-            float _offsetX = RandomJob.NextFloat(-100000.0f, 100000.0f);
-            float _offsetY = RandomJob.NextFloat(-100000.0f, 100000.0f);
-            float _offsetZ = RandomJob.NextFloat(-100000.0f, 100000.0f);
-            OctOffsetArrayJob[index] = new float3(_offsetX, _offsetY, _offsetZ);
-
-            //OctOffsetArrayJob[index] = new float3((float)RandomJob.NextDouble() * 2 - 1, (float)RandomJob.NextDouble() * 2 - 1, (float)RandomJob.NextDouble() * 2 - 1);
-        }
-    }
 }
