@@ -146,6 +146,7 @@ namespace KaizerWaldCode.V2.System
                 FallOffJob = mapBoundXZ,
                 NumChunkJob = _em.GetComponentData<Data.Settings.Chunk.NumChunk>(mapSetting).Value,
                 randJob = new Unity.Mathematics.Random((uint)GetComponent<Data.Settings.Noise.Seed>(mapSetting).Value).NextInt(),
+                IsoSurfaceJob = _em.GetComponentData<mapSet.IsoSurface>(mapSetting).Value,
                 MapBoundXZJob = mapBoundXZ,
                 MapBoundYJob = mapBoundY,
                 MapNumPointPerAxisXZJob = numPointMapAxisXZ,

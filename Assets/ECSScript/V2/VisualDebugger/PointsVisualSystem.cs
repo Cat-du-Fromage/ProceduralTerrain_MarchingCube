@@ -78,9 +78,13 @@ namespace KaizerWaldCode.Debugging.Points
                     {
                         ecb2.SetSharedComponent( ent, new RenderMesh(){mesh = render.mesh, material = material.Red});
                     }
+                    else if(pointsBuffer[entityInQueryIndex].Value.w <= isoSurface + 2)
+                    {
+                        ecb2.SetSharedComponent( ent, new RenderMesh() { mesh = render.mesh, material = material.Blue});
+                        //ecb2.DestroyEntity(ent);
+                    }
                     else
                     {
-                        //ecb2.SetSharedComponent( ent, new RenderMesh() { mesh = render.mesh, material = material.Blue});
                         ecb2.DestroyEntity(ent);
                     }
                 }).Run();

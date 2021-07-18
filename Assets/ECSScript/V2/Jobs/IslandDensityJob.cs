@@ -15,6 +15,7 @@ namespace KaizerWaldCode.V2.Jobs
     public struct IslandDentityJob : IJobParallelFor
     {
         [ReadOnly] public int FallOffJob;
+        [ReadOnly] public float IsoSurfaceJob;
         [ReadOnly] public int NumChunkJob;
         [ReadOnly] public int randJob;
         [ReadOnly] public int MapBoundXZJob;
@@ -27,6 +28,8 @@ namespace KaizerWaldCode.V2.Jobs
         public NativeArray<float4> pointsJob;
         public void Execute(int index)
         {
+            if (pointsJob[index].w < IsoSurfaceJob) return;
+
             //Get all Points
             int x = (int)math.fmod(index, MapNumPointPerAxisXZJob);
             int y = /*(int)math.floor*/((int)math.fmod(index, math.mul(MapNumPointPerAxisXZJob, MapNumPointPerAxisYJob)) / MapNumPointPerAxisXZJob); // need to test without floor
@@ -34,21 +37,25 @@ namespace KaizerWaldCode.V2.Jobs
             float3 gridCenter = new float3(MapBoundXZJob / 2f, MapBoundYJob / 2f, MapBoundXZJob / 2f);
             float3 mapCenter = new float3(MapNumPointPerAxisXZJob / 2f, MapNumPointPerAxisXZJob / 2f, MapNumPointPerAxisXZJob / 2f);
             float3 pointPosition = pointsJob[index].xyz;
+
+            float2 trueOrigin = new float2(math.mul(SpacingJob, NumChunkJob) / 2, math.mul(SpacingJob, NumChunkJob) / 2);
             
             float sampleX = (pointPosition.x / MapNumPointPerAxisXZJob * ScaleJob); //real or grid position?
             float sampleZ = (pointPosition.z / MapNumPointPerAxisXZJob * ScaleJob);
 
-            float noiseHeight = NoiseMapIsland(pointPosition) - (math.lengthsq(pointPosition.xz - new float2(0 + (SpacingJob * NumChunkJob) / 2, 0 + (SpacingJob * NumChunkJob) / 2)) / math.mul(FallOffJob, FallOffJob));
+            float noiseHeight = NoiseMapIsland(pointPosition) - (math.lengthsq(pointPosition.xz - new float2(0 + (SpacingJob * NumChunkJob) / 2, 0 + (SpacingJob * NumChunkJob) / 2)) / math.mul(FallOffJob/2, FallOffJob/2));
             //noiseHeight = 1 + noiseHeight;
             //float noiseHeight = NoiseMapIsland(pointPosition);
-            //noiseHeight = 1 + math.abs(noiseHeight);
-            //noiseHeight *= noiseHeight;
+            //noiseHeight = NoiseMapIsland(pointPosition);
+            noiseHeight = (1 - math.abs(NoiseMapIsland(pointPosition)));
+            noiseHeight *= noiseHeight;
             //noiseHeight = math.abs(noiseHeight);
-            //noiseHeight = math.mul(pointsJob[index].w, 1-(math.abs(noiseHeight)));
-            noiseHeight = pointsJob[index].w - (1 - (math.abs(noiseHeight)));
+            //noiseHeight = math.mul(pointsJob[index].w, noiseHeight);
+
+            noiseHeight = pointsJob[index].w - noiseHeight*2;
             //CAREFUL add spacing * num chunk to center map / 2
 
-            if (    math.length(pointPosition.xz - new float2(0+ (SpacingJob* NumChunkJob) /2, 0+ (SpacingJob * NumChunkJob) /2)) <= MapBoundXZJob/2)
+            if (    math.length(pointPosition.xz - new float2(0 + trueOrigin.x, 0 + trueOrigin.y)) <= MapBoundXZJob/2 && pointsJob[index].w >= IsoSurfaceJob)
             {
                 pointsJob[index] = new float4(pointsJob[index].xyz, noiseHeight);
             }
@@ -67,14 +74,17 @@ namespace KaizerWaldCode.V2.Jobs
             float noiseHeight = 0;
             float frequency = 1;
             float amplitude = 1;
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 6; i++)
             {
 
                 float sampleX = math.mul((position.x - (SpacingJob * NumChunkJob) / 2) / ScaleJob, frequency);
-                float sampleY = math.mul((position.z - (SpacingJob * NumChunkJob) / 2) / ScaleJob, frequency);
-                float2 sampleXY = new float2(sampleX, sampleY);
 
-                float pNoiseValue = snoise(sampleXY);
+                float sampleY = math.mul((position.y - (SpacingJob * NumChunkJob) / 2) / ScaleJob, frequency);
+
+                float sampleZ = math.mul((position.z - (SpacingJob * NumChunkJob) / 2) / ScaleJob, frequency);
+                //float2 sampleXY = new float2(sampleX, sampleZ);
+                float3 sampleXYZ = new float3(sampleX, sampleY, sampleZ);
+                float pNoiseValue = snoise(sampleXYZ);
                 noiseHeight = math.mad(pNoiseValue, amplitude, noiseHeight);
                 amplitude = math.mul(amplitude, 0.5f);
                 frequency = math.mul(frequency, 2);
